@@ -1,0 +1,279 @@
+```{r}
+#| label: basetabfunc
+#| cache: true
+#| cache.comments: false
+
+basetabfunc_inner <- function(x, data, stratavar, catdig, contdig) {
+  tmp <- data %>%
+    filter(!is.na(!!sym(x)) & !is.na(!!sym(stratavar)))
+
+  pmis <- data %>%
+    filter(!is.na(!!sym(stratavar))) %>%
+    mutate(mis = factor(if_else(is.na(!!sym(x)), 1, 0), levels = 0:1)) %>%
+    count(mis, .drop = F) %>%
+    mutate(pmis = fn(n / sum(n) * 100, catdig)) %>%
+    filter(mis == "1") %>%
+    pull(pmis)
+
+  cl <- class(data %>% pull(!!sym(x)))
+  if (cl %in% c("character", "factor")) {
+    out <- tmp %>%
+      group_by(!!sym(stratavar), .drop = F) %>%
+      count(!!sym(x), .drop = F) %>%
+      mutate(
+        out = paste0(n, " (", fn(n / sum(n) * 100, catdig), ")"),
+        out = case_when(
+          sum(n) == 0 ~ "-",
+          n < 10 ~ "<10",
+          TRUE ~ out
+        ),
+        level = !!sym(x)
+      ) %>%
+      ungroup() %>%
+      select(!!sym(stratavar), out, level) %>%
+      pivot_wider(names_from = !!sym(stratavar), values_from = out)
+
+    # p-value
+    check <- tmp %>%
+      count(!!sym(stratavar), !is.na(!!sym(x)))
+    if (nrow(check) >= 2) {
+      p <- fn(chisq.test(tmp %>% pull(!!sym(stratavar)), tmp %>% pull(!!sym(x)))$p.value, p = T, dig = 3)
+    } else {
+      p <- "-"
+    }
+
+    # if levels No, Yes only present Yes
+    levs <- out %>% pull(level)
+    nlevs <- length(levs)
+    if (nlevs == 2 & all(levs %in% c("No", "Yes"))) {
+      out <- out %>%
+        filter(level == "Yes") %>%
+        mutate(
+          var = x,
+          p = p,
+          pmis = pmis,
+          level = NA
+        )
+    } else {
+      out <- out %>%
+        mutate(
+          var = NA,
+          p = NA,
+          pmis = NA
+        )
+      out <- out %>% add_row(
+        var = x,
+        p = p,
+        pmis = pmis,
+        .before = 1
+      )
+    }
+  } else if (cl %in% c("numeric", "integer")) {
+    if (length(contdig) > 1) {
+      if (any(contdig$vars %in% x)) {
+        contdig <- contdig %>%
+          filter(vars == x) %>%
+          pull(contdig)
+      } else {
+        contdig <- 0
+      }
+    }
+    tmp <- data %>%
+      filter(!is.na(!!sym(x)) & !is.na(!!sym(stratavar)))
+    out <- tmp %>%
+      group_by(!!sym(stratavar), .drop = F) %>%
+      reframe(
+        med = quantile(!!sym(x), na.rm = T, probs = c(0.5)),
+        q1 = quantile(!!sym(x), na.rm = T, probs = c(0.25)),
+        q3 = quantile(!!sym(x), na.rm = T, probs = c(0.75)),
+        n = n()
+      ) %>%
+      mutate(
+        out = paste0(fn(med, contdig), " [", fn(q1, contdig), "-", fn(q3, contdig), "]"),
+        out = case_when(
+          n == 0 ~ "-",
+          n < 10 ~ "<10",
+          TRUE ~ out
+        )
+      ) %>%
+      ungroup() %>%
+      select(!!sym(stratavar), out) %>%
+      pivot_wider(names_from = !!sym(stratavar), values_from = out)
+
+    # p-value
+    check <- tmp %>%
+      count(!!sym(stratavar), !is.na(!!sym(x)))
+    if (nrow(check) >= 2) {
+      p <- fn(kruskal.test(formula(paste0(x, " ~ ", stratavar)), data = tmp)$p.value, p = T, dig = 3)
+    } else {
+      p <- "-"
+    }
+
+    out <- out %>%
+      mutate(
+        var = x,
+        p = p,
+        pmis = pmis
+      )
+  } else {
+    stop("Unknown class in baseline table")
+  }
+}
+
+# numvarscheck <- rsdata %>%
+#  head(100) %>%
+#  select(!!!syms(tabvars)) %>%
+#  select(where(is.numeric))
+
+contdig <- tibble(vars = c("shf_potassium"), contdig = 1)
+catdig <- 0
+
+basetabfunc <- function(data) {
+  tab <- data %>%
+    count(sos_lm_sglt2, .drop = F) %>%
+    mutate(n = paste0(n, " (", fn(n / sum(n) * 100, catdig), ")")) %>%
+    pivot_wider(names_from = sos_lm_sglt2, values_from = n) %>%
+    mutate(
+      var = "N (%)",
+      level = NA,
+      p = NA,
+      pmis = NA
+    ) %>%
+    select(var, level, pmis, levels(rsdata %>% pull(sos_lm_sglt2)), p)
+
+  tabtmp <- sapply(tabvars_rs,
+    FUN = basetabfunc_inner, data = data,
+    stratavar = "sos_lm_sglt2", catdig = catdig, contdig = contdig
+  )
+
+  tabtmp <- bind_rows(tabtmp)
+  tab <- bind_rows(tab, tabtmp)
+
+  tab <- tab %>%
+    mutate(
+      # if recoding or categorizing will still get org label
+      var_tmp = str_replace_all(var, "(_cat2|_cat)", ""),
+      # if shf/sos combination  will still get org label
+      var_tmp = str_replace_all(var_tmp, "shf_sos_com_", "sos_com_")
+    )
+
+  tab <- left_join(tab,
+    metavars %>%
+      select(variable, label, unit),
+    by = c("var_tmp" = "variable")
+  ) %>%
+    mutate(
+      Variable = coalesce(label, var_tmp),
+      Variable = if_else(!is.na(unit),
+        paste0(Variable, " (", unit, ")"),
+        Variable
+      ),
+      Variable = if_else(!is.na(level) & !is.na(Variable),
+        paste0(Variable, " ", level),
+        coalesce(Variable, paste0("  ", level))
+      ),
+      # small fixes
+      Variable = str_replace_all(Variable, fixed("Disposable income (100 SEK)"), "Income"),
+      No = if_else(Variable %in% c("Dapagliflozin", "Empagliflozin", "  Baseline-14 days", "  4 months-<Baseline"), "-", No),
+    )
+
+  # footnotes
+  tab <- tab %>%
+    mutate(
+      footnote1 = if_else(!is.na(var) & var %in% modvars_rs, footnote_marker_alphabet(1, format = "latex"), "")
+    ) %>%
+    unite(footnote, starts_with("footnote"), sep = "")
+
+  cn <- c("Variable", "Missing (%)", paste0(levels(rsdata %>% pull(sos_lm_sglt2)), " SGLT2i"), "p-value")
+  cn <- str_remove(cn, "Yes ")
+
+  footnotetext <- c(
+    "Included in multiple imputation and regression models."
+  )
+
+  # excel
+  tab_xls <- tab %>%
+    mutate(
+      Variable = paste0(Variable, footnote),
+      Variable = str_remove_all(Variable, "textsuperscript|\\}|\\{"),
+      Variable = str_replace_all(Variable, "\\\\", " ")
+    ) %>%
+    select(Variable, pmis:p) %>%
+    add_row(Variable = "") %>%
+    add_row(Variable = paste0("a ", footnotetext[1]))
+
+  make_one_xlsxsheet(tab_xls, colnames = cn)
+
+  # footnotes
+  tab <- tab %>%
+    mutate(
+      # so no probs
+      Variable = sanitize_text(Variable),
+      Variable = paste0(Variable, footnote),
+      Variable = str_replace_all(Variable, fixed("²"), "\\textsuperscript{2}"),
+      Variable = str_replace_all(Variable, fixed("$>$="), "$\\geq$"),
+      Variable = str_replace_all(Variable, fixed("$<$="), "$\\leq$")
+    ) %>%
+    select(Variable, pmis:p)
+
+  indent_rows <- tab %>%
+    mutate(
+      indent_rows = str_detect(Variable, "  "),
+      rows = row_number()
+    ) %>%
+    filter(indent_rows) %>%
+    pull(rows)
+
+  cn <- sanitize_text(cn)
+
+  default_kable(tab,
+    font_size = 7.5,
+    longtable = TRUE,
+    escape = FALSE,
+    col.names = cn
+  ) %>%
+    add_indent(indent_rows) %>%
+    footnote(
+      footnote_order = c("general", "symbol", "alphabet"),
+      general_title = "",
+      general = c(
+        "Categorical variables are presented with n (%) and tested with chi-square test and continuous variables with median [q1-q3] and tested with Kruskal-Wallis test."
+      ),
+      alphabet = footnotetext,
+      threeparttable = T
+    )
+}
+```
+
+```{r}
+#| label: tbl-base-ref
+#| cache: true
+#| cache.comments: false
+#| dependson: basetabfunc
+#| tbl-cap: "Baseline characteristics - HFrEF"
+#| tbl-pos: "H"
+
+basetabfunc(data = rsdata %>% filter(shf_ef_cat == "HFrEF"))
+```
+
+```{r}
+#| label: tbl-base-mref
+#| cache: true
+#| cache.comments: false
+#| dependson: basetabfunc
+#| tbl-cap: "Baseline characteristics - HFmrEF"
+#| tbl-pos: "H"
+
+basetabfunc(data = rsdata %>% filter(shf_ef_cat == "HFmrEF"))
+```
+
+```{r}
+#| label: tbl-base-pef
+#| cache: true
+#| cache.comments: false
+#| dependson: basetabfunc
+#| tbl-cap: "Baseline characteristics - HFpEF"
+#| tbl-pos: "H"
+
+basetabfunc(data = rsdata %>% filter(shf_ef_cat == "HFpEF"))
+```

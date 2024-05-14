@@ -1,0 +1,297 @@
+---
+title: "Statistical report: SGLT2i across the EF spectrum"
+subtitle: Draft
+date: "`r Sys.Date()`"
+cover: static/ki_logo_vert_rgb.png
+editor: source
+format:
+  pdf:
+    documentclass: scrartcl
+    template-partials:
+      - "static/before-body.tex"
+      - "static/_titlepage.tex"
+    include-in-header: 
+      - "static/in-header.tex"
+    toc: true
+    toc-depth: 3
+    toc-title: Contents
+    lof: true
+    lot: true
+    cap-location: top
+    number-sections: true
+    colorlinks: false
+    keep-tex: false
+bibliography: static/references.bib
+csl: static/bmj.csl
+link-citations: true
+link-bibliography: true
+nocite: '@*'
+knitr:
+  opts_chunk: 
+    dev: cairo_pdf
+    collapse: true
+    comment: "" 
+    echo: FALSE
+    include: TRUE
+    warning: FALSE
+    message: FALSE
+    fig.pos: "H"
+    fig.path: "../output/figs/"
+    fig.height: 6
+    fig.width: 10
+    R.options:
+      knitr.graphics.auto_pdf: true
+---
+
+```{r}
+#| label: set-up-load-data
+options(knitr.kable.NA = "")
+
+# load packages, globals and project specific functions
+source(here::here("setup/setup.R"))
+
+# load data
+load(here("data/clean-data/rsdata.RData"))
+load(here("data/clean-data/nprdata.RData"))
+
+# load workbook to write tables to Excel
+wb <- loadWorkbook(here("output/tabs/tables.xlsx"))
+sheets <- names(wb)
+
+# load pptx file with figs
+figs <- officer::read_pptx(path = here::here("output/figs/figs.pptx"))
+pptx <- FALSE
+```           
+
+\newpage
+
+# Data
+
+## Data sources
+
+The Swedish Heart Failure Registry (SwedeHF) is an ongoing nationwide quality registry started in 2000, 
+that includes in- and out-hospital patients with HF, regardless of EF and previous history of HF[@swedehf]. 
+Around 80 variables are recorded at 
+discharge from hospital or at the outpatient visit, i.e. index date, and 
+entered into an electronic database managed by the Uppsala Clinical Research 
+Center (Uppsala, Sweden). Up to April 2017 the only inclusion criterion was a 
+clinical diagnosis of HF, which was thereafter defined according to the ICD-10 
+codes I50.0, I50.1, I50.9, I42.0, I42.6, I42.7, I25.5, I11.0, I13.0, I13.2. 
+In 2021, 69 of 76 Swedish hospitals enrolled patients in SwedeHF, which had a 32% coverage of the prevalent HF population in Sweden[@annualreport]. 
+
+SwedeHF was linked with national Swedish registries (SHFDB version 4.2.0) through the 
+Swedish personal identity number (PIN)[@pin]: 
+
+- The National Patient Register (The National Board of Health and Welfare) for definition of the NPR population and
+additional comorbidities
+- The Cause of Death Register[@dors] (The National Board of Health and Welfare) for outcomes 
+death (used for censoring)
+- The National Prescribed Drug Register (The National Board of Health and Welfare) for SGLT2i dispensations
+- Longitudinal integrated database for health insurance and labour market studies (LISA)[@lisa] 
+and the Register of the Total Population (Statistics Sweden) for socio-economic factors
+
+## Acknowledgments
+
+Please include "We thank all staff members at care units reporting into the SwedeHF registry for their contribution." 
+in the Acknowledgements of any resulting articles. 
+
+## Ethics and Informed consent
+
+The study was approved by the Swedish Ethical Review Authority, dnr 2021-04326. 
+Individual consent was not required, but patients were informed of entry into SwedeHF and able to opt‐out.
+
+## Inclusion/exclusion criteria
+
+The analyses were performed for 2 populations: 
+
+### SwedeHF population
+
+```{r}
+#| label: tbl-flow-rs
+#| tbl-cap: Information for flowchart - SwedeHF
+#| tbl-pos: "H"
+
+default_kable(flow_rs) %>%
+  row_spec(c(1, 11), bold = T)
+```
+
+First patient in: `r min(rsdata$shf_indexdtm)` and last patient in: `r max(rsdata$shf_indexdtm)`. 
+
+Baseline for this population is date of visits or date of discharge for the visit/hospitalization recorded in SwedeHF. 
+
+### NPR population
+
+Patients with $\geq2$ ICD-10 code for HF in main position in the National Patient Register 
+(ICD-10: I110, I130, I132, I255, I420, I423, 1425-9, I43, I50, J81, K761) 
+starting from 2000-01-01 with no previous ICD-9/10 code for HF 
+(I110 I130 I132 I255 I420 I423 1425 I426 I427 I428 I429 I43 I50 J81 K761 ICD-9: 414W 425E 425F 425G 425H 425W 425X 428) 
+since 1987 were defined as the NPR population. 
+
+```{r}
+#| label: tbl-flow-npr
+#| tbl-cap: Information for flowchart - NPR
+#| tbl-pos: "H"
+
+default_kable(flow_npr)
+```
+
+First patient in: `r min(nprdata$indexdtm)` and last patient in: `r max(nprdata$indexdtm)`.  
+
+Baseline for this population is date of visits or date of discharge for the second visit/hospitalization including a hospitalization in the NPR. 
+
+The NPR population was only used to present trends over time. 
+
+#### Limitation 
+
+Note that the NPR population is included up until 2021-12-31 so newly diagnosed patients are not included in the population. 
+
+## Definitions
+
+Information on data sources, definitions etc. are found https://kiheartfailure.github.io/shfdb4/.
+
+{{< include src/vars.qmd >}}
+
+Please CHECK ATC codes for sglt2!
+
+# Statistical analysis 
+
+## General
+
+All analyses were performed using `r sessionInfo()$R.version$version.string` [@r]. 
+The level of significance is set to 5%, two-sided. No adjustment for multiple 
+comparisons were made and therefore the results should be viewed with care.
+
+## Missing data
+
+Missing data was imputed with multiple imputation (n = 10) using mice [@mice] 
+and Rubin’s rules was used for combining estimates and standard errors across imputed data sets. 
+Variables included in the model are indicated in @tbl-base-ref - @tbl-base-pef. 
+
+## Subgroups
+
+All analyses from SwedeHF are presented by EF defined as HFrEF (LVEF <40%), HFrEF (LVEF 40-49%) and HFpEF (LVEF $\geq$ 50%). 
+
+Further, on the SwedeHF population, selected analyses are performed by `r paste0(subgroupvars_rs$label, collapse = ", ")`. 
+
+## Baseline characteristics
+
+Baseline characteristics are presented by SGLT2i. 
+Categorical variables are presented with n and percentage and tested for 
+differences between groups with the chi-square test. 
+Continuous variables are presented with median [first quartile-third quartile] and tested for 
+differences between groups with the Kruskal-Wallis test. 
+
+## Trends in SGLT2i over time
+
+Trends in SGLT2i prevalent use, incident use and discontinuation was presented over calender time. 
+
+### Prevalent use
+
+The denominator was defined as patients not censored (alive and not emigrated from Sweden) and available in the population, 
+for the NPR population all patients since inclusion stopped 2021-12-31 and for the SwedeHF population patients recorded in SwedeHF at the time. 
+
+The numerator was defined as patients in the denominator with an SGLT2i dispensation within 4 months prior. 
+
+### Incident use
+
+Incident use was defined as prevalent use with the exception that only patients without a SGLT2i dispensation 16-4 months prior to baseline were included (thereby considered as SGLT2i naive).
+
+### Discontinuation
+
+Discontinuation was defined similar to the above but only patients with a SGLT2i dispensation 8-4 months prior to baseline were included (thereby considered to be SGLT2i users).
+
+## Associations between baseline characteristics and SGLT2i
+
+The association between baseline characteristics and SGLT2i was evaluated using a multivariable logistic regression 
+including the variables shown in @tbl-predictors and @fig-predictors. The variables were selected based on clinical relevance. 
+
+### Assumptions
+
+TO CHECK: Possible outliers were evaluated using Cook's distance and multicollinearity was 
+evaluated using the Variance Inflation Factor (VIF) without any cause for action. 
+
+# Results
+
+```{r}
+med <- rsdata %>%
+  summarise(
+    med = fn(median(shf_age), dig = 0),
+    q1 = fn(quantile(shf_age, probs = 0.25), dig = 0),
+    q3 = fn(quantile(shf_age, probs = 0.75), dig = 0)
+  ) %>%
+  mutate(out = paste0(med, " (", q1, "-", q3, ")")) %>%
+  pull(out)
+
+percfem <- rsdata %>%
+  count(shf_sex) %>%
+  mutate(perc = fn(n / sum(n) * 100, 0)) %>%
+  filter(shf_sex == "Female") %>%
+  pull(perc)
+
+med_npr <- nprdata %>%
+  summarise(
+    med = fn(median(shf_age), dig = 0),
+    q1 = fn(quantile(shf_age, probs = 0.25), dig = 0),
+    q3 = fn(quantile(shf_age, probs = 0.75), dig = 0)
+  ) %>%
+  mutate(out = paste0(med, " (", q1, "-", q3, ")")) %>%
+  pull(out)
+
+percfem_npr <- nprdata %>%
+  count(shf_sex) %>%
+  mutate(perc = fn(n / sum(n) * 100, 0)) %>%
+  filter(shf_sex == "Female") %>%
+  pull(perc)
+```
+
+The median (q1-q3) age is `r med` and `r percfem`% females in the SwedeHF population and `r med_npr` and `r percfem_npr`% in the NPR population.    
+
+## Baseline characteristics
+
+{{< include src/base_tab.qmd >}}
+
+\clearpage
+
+{{< include src/use_geo.qmd >}}
+
+## Trends in SGLT2i over time
+
+### SwedeHF population
+
+{{< include src/overtime_figs_rs.qmd >}}
+
+\clearpage 
+
+### NPR population
+
+{{< include src/overtime_figs_npr.qmd >}}
+
+\clearpage
+
+## Associations between baseline characteristics and SGLT2i
+
+{{< include src/predictors.qmd >}}
+
+\clearpage
+
+# Reproducibility
+
+## R code
+
+The R code for all data handling and statistical analyses are found: 
+
+https://github.com/KIHeartFailure/swedehf-sglt2ef. On publication
+the repository will be made public so as to 
+link to it from the resulting article for increased transparency and code sharing.
+No data or output is stored in the repository. 
+
+## R session information {#sessioninfo}
+
+```{r sessinfo}
+sessionInfo()
+```
+
+# References
+
+::: {#refs}
+:::

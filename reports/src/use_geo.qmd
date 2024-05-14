@@ -1,0 +1,104 @@
+```{r}
+#| label: geoprep
+#| cache: true
+#| cache.comments: false
+
+swedenmap <- readr::read_rds("D:/STATISTIK/Projects/20240208_sglt2ef/data/clean-data/gadm/gadm41_SWE_1_pk.rds")
+# swedenmap <- readr::read_rds("D:/STATISTIK/Projects/20240208_sglt2ef/gadm36_SWE_1_sp.rds")
+map <- swedenmap %>%
+  terra::unwrap() %>%
+  st_as_sf()
+
+region <- rsdata %>%
+  group_by(shf_ef_cat, shf_centreregion, .drop = FALSE) %>%
+  count(sos_lm_sglt2, .drop = FALSE) %>%
+  mutate(
+    per = n / sum(n) * 100,
+    ntot = sum(n),
+    np = paste0(n, " (", fn(per, 1), ")"),
+    np = if_else(ntot < 10, "<10", np),
+    per = round(per, 0)
+  ) %>%
+  ungroup() %>%
+  filter(sos_lm_sglt2 == "Yes") %>%
+  mutate(
+    per_cat = factor(
+      case_when(
+        per <= 30 ~ NA_real_,
+        per <= 40 ~ 1,
+        per <= 50 ~ 2,
+        per <= 60 ~ 3,
+        per <= 70 ~ 4,
+        per <= 80 ~ 5,
+        per <= 90 ~ 6,
+        per <= 100 ~ 7
+      ),
+      levels = 1:7,
+      labels = c("31-40", "41-50", "51-60", "61-70", "71-80", "81-90", "91-100")
+    )
+  )
+
+if (any(is.na(region$per_cat))) stop("Missing for region, percent outside range")
+
+region <- region %>%
+  mutate(
+    shf_centreregion_map = case_when(
+      shf_centreregion == "Sormland" ~ "Södermanland",
+      shf_centreregion == "Ostergotland" ~ "Östergötland",
+      shf_centreregion == "Jonkoping" ~ "Jönköping",
+      shf_centreregion == "Skane" ~ "Skåne",
+      shf_centreregion == "Vastra Gotaland" ~ "Västra Götaland",
+      shf_centreregion == "Varmland" ~ "Värmland",
+      shf_centreregion == "Vastmanland" ~ "Västmanland",
+      shf_centreregion == "Gavleborg" ~ "Gävleborg",
+      shf_centreregion == "Vasternorrland" ~ "Västernorrland",
+      shf_centreregion == "Jamtland Harjedalen" ~ "Jämtland",
+      shf_centreregion == "Vasterbotten" ~ "Västerbotten",
+      TRUE ~ shf_centreregion
+    )
+  )
+```
+
+```{r}
+#| label: tbl-geo
+#| cache: true
+#| cache.comments: false
+#| dependson: geoprep
+#| tbl-cap: "SGLT2i use at registration in SwedeHF by county of centre"
+
+regiontab <- region %>%
+  select(shf_ef_cat, shf_centreregion_map, np) %>%
+  pivot_wider(names_from = "shf_ef_cat", values_from = "np")
+default_kable(regiontab,
+  col.names = c("County", levels(rsdata %>% pull(shf_ef_cat))),
+  scale_down = F
+)
+```
+
+```{r}
+#| label: fig-geo
+#| cache: true
+#| cache.comments: false
+#| dependson: geoprep
+#| fig-cap: "SGLT2i use at registration in SwedeHF by county of centre"
+#| fig-width: 8
+#| fig-height: 10
+
+map <- left_join(map, region, by = c("NAME_1" = "shf_centreregion_map"))
+
+pall <- ggplot(map, aes(fill = per_cat)) +
+  geom_sf() +
+  theme_void() +
+  theme(
+    text = element_text(size = 20, face = "bold"),
+    legend.position = "bottom"
+  ) +
+  scale_fill_ordinal(direction = -1) +
+  labs(fill = "SGLT2i (%)") +
+  facet_wrap(vars(shf_ef_cat), ncol = 3)
+
+if (pptx) {
+  create_pptx(pall, height = 10, width = 8)
+}
+pall
+```
