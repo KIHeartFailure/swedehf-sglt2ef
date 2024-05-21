@@ -204,7 +204,7 @@ predoutplot <- predout %>%
   mutate(
     var2 = str_replace_all(var2, ">=", "\u2265"),
     var2 = str_replace_all(var2, "<=", "\u2264"),
-    var2 = forcats::fct_rev(forcats::fct_inorder(var2)), 
+    var2 = forcats::fct_rev(forcats::fct_inorder(var2)),
     cols = forcats::fct_rev(cols)
   )
 

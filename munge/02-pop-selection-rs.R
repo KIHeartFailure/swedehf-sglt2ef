@@ -14,7 +14,7 @@ flow_rs <- rbind(c("General inclusion/exclusion criteria", ""), flow_rs)
 
 flow_rs <- rbind(flow_rs, c("Project specific inclusion/exclusion criteria", ""))
 
-rsdata <- rsdata420 %>%
+rsdata <- rsdata421 %>%
   filter(!is.na(shf_ef_cat))
 flow_rs <- rbind(flow_rs, c("Exclude post with missing EF", nrow(rsdata)))
 
@@ -54,5 +54,5 @@ rsdata <- rsdata %>%
 
 flow_rs <- rbind(flow_rs, c("First post / patient", nrow(rsdata)))
 
-rm(rsdata420)
+rm(rsdata421)
 gc()

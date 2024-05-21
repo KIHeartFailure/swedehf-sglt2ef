@@ -4,12 +4,12 @@ source(here::here("setup/setup.R"))
 
 # Load data ---------------------------------------------------------------
 
-load(here(shfdbpath, "data/v420/rsdata420.RData"))
+load(here(shfdbpath, "data/v421/rsdata421.RData"))
 
 # Meta data ect -----------------------------------------------------------
 
 metavars <- read.xlsx(here(shfdbpath, "metadata/meta_variables.xlsx"))
-load(here(paste0(shfdbpath, "data/v420/meta_statreport.RData")))
+load(here(paste0(shfdbpath, "data/v421/meta_statreport.RData")))
 
 # Munge data --------------------------------------------------------------
 
@@ -38,42 +38,6 @@ save(
     "overtime_prev",
     "overtime_inc",
     "overtime_disc"
-  )
-)
-
-# npr hf pop
-
-rm(list = ls())
-gc()
-source(here::here("setup/setup.R"))
-
-# Load data ---------------------------------------------------------------
-
-load(here(shfdbpath, "data/v420/rsdatafull420.RData"))
-load(here(shfdbpath, "/data/", datadate, "/patreg.RData"))
-load(here(shfdbpath, "/data/", datadate, "/rawData_scb.RData"))
-load(here(shfdbpath, "/data/", datadate, "/prepdors.RData"))
-
-# Munge data --------------------------------------------------------------
-
-source(here("munge/06-pop-selection-npr.R"))
-
-rm(list = setdiff(ls(), c("nprdata", "flow_npr")))
-gc()
-source(here::here("setup/setup.R"))
-
-source(here("munge/07-pdr-sglt2-npr.R"))
-
-# Cache/save data ---------------------------------------------------------
-
-save(
-  file = here("data/clean-data/nprdata.RData"),
-  list = c(
-    "flow_npr",
-    "nprdata",
-    "overtime_prev_npr",
-    "overtime_inc_npr",
-    "overtime_disc_npr"
   )
 )
 

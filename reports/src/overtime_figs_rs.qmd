@@ -6,12 +6,12 @@
 overtimefunc <- function(data, xvar = NULL, leglab = NULL, ybreaks = seq(0, 100, 25)) {
   if (is.null(xvar)) {
     data <- data %>%
-      filter(is.na(xvars) & time >= ymd("2022-10-01"))
+      filter(is.na(xvars)) # & time >= ymd("2022-10-01"))
 
     datalabel <- data %>%
       filter(day(time) == 1) %>%
       arrange(shf_ef_cat, time) %>%
-      slice(seq(3, n(), 3))
+      slice(seq(1, n(), 3))
 
     p <- ggplot(
       data,
@@ -42,7 +42,7 @@ overtimefunc <- function(data, xvar = NULL, leglab = NULL, ybreaks = seq(0, 100,
       geom_text_repel(data = datalabel, aes(x = time, y = per, label = perprint, color = shf_ef_cat), show.legend = FALSE, size = 5, fontface = "bold", inherit.aes = F, direction = "y")
   } else {
     data <- data %>%
-      filter(!is.na(xvars) & xvars == xvar & time >= ymd("2022-10-01")) %>%
+      filter(!is.na(xvars) & xvars == xvar) %>% # & time >= ymd("2022-10-01")) %>%
       mutate(xval = forcats::fct_inorder(xval))
 
     datalabel <- data %>%

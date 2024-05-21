@@ -52,7 +52,6 @@ source(here::here("setup/setup.R"))
 
 # load data
 load(here("data/clean-data/rsdata.RData"))
-load(here("data/clean-data/nprdata.RData"))
 
 # load workbook to write tables to Excel
 wb <- loadWorkbook(here("output/tabs/tables.xlsx"))
@@ -79,11 +78,10 @@ clinical diagnosis of HF, which was thereafter defined according to the ICD-10
 codes I50.0, I50.1, I50.9, I42.0, I42.6, I42.7, I25.5, I11.0, I13.0, I13.2. 
 In 2021, 69 of 76 Swedish hospitals enrolled patients in SwedeHF, which had a 32% coverage of the prevalent HF population in Sweden[@annualreport]. 
 
-SwedeHF was linked with national Swedish registries (SHFDB version 4.2.0) through the 
+SwedeHF was linked with national Swedish registries (SHFDB version 4.2.1) through the 
 Swedish personal identity number (PIN)[@pin]: 
 
-- The National Patient Register (The National Board of Health and Welfare) for definition of the NPR population and
-additional comorbidities
+- The National Patient Register (The National Board of Health and Welfare) for additional comorbidities
 - The Cause of Death Register[@dors] (The National Board of Health and Welfare) for outcomes 
 death (used for censoring)
 - The National Prescribed Drug Register (The National Board of Health and Welfare) for SGLT2i dispensations
@@ -102,10 +100,6 @@ Individual consent was not required, but patients were informed of entry into Sw
 
 ## Inclusion/exclusion criteria
 
-The analyses were performed for 2 populations: 
-
-### SwedeHF population
-
 ```{r}
 #| label: tbl-flow-rs
 #| tbl-cap: Information for flowchart - SwedeHF
@@ -115,35 +109,10 @@ default_kable(flow_rs) %>%
   row_spec(c(1, 11), bold = T)
 ```
 
-First patient in: `r min(rsdata$shf_indexdtm)` and last patient in: `r max(rsdata$shf_indexdtm)`. 
+First patient in: `r min(rsdata$shf_indexdtm)` and last patient in: `r max(rsdata$shf_indexdtm)` 
+from approximately `r rsdata %>% distinct(shf_centre) %>% count() %>% pull(n)` enrolling centers. 
 
-Baseline for this population is date of visits or date of discharge for the visit/hospitalization recorded in SwedeHF. 
-
-### NPR population
-
-Patients with $\geq2$ ICD-10 code for HF in main position in the National Patient Register 
-(ICD-10: I110, I130, I132, I255, I420, I423, 1425-9, I43, I50, J81, K761) 
-starting from 2000-01-01 with no previous ICD-9/10 code for HF 
-(I110 I130 I132 I255 I420 I423 1425 I426 I427 I428 I429 I43 I50 J81 K761 ICD-9: 414W 425E 425F 425G 425H 425W 425X 428) 
-since 1987 were defined as the NPR population. 
-
-```{r}
-#| label: tbl-flow-npr
-#| tbl-cap: Information for flowchart - NPR
-#| tbl-pos: "H"
-
-default_kable(flow_npr)
-```
-
-First patient in: `r min(nprdata$indexdtm)` and last patient in: `r max(nprdata$indexdtm)`.  
-
-Baseline for this population is date of visits or date of discharge for the second visit/hospitalization including a hospitalization in the NPR. 
-
-The NPR population was only used to present trends over time. 
-
-#### Limitation 
-
-Note that the NPR population is included up until 2021-12-31 so newly diagnosed patients are not included in the population. 
+Baseline is date of visits or date of discharge for the visit/hospitalization recorded in SwedeHF. 
 
 ## Definitions
 
@@ -169,9 +138,9 @@ Variables included in the model are indicated in @tbl-base-ref - @tbl-base-pef.
 
 ## Subgroups
 
-All analyses from SwedeHF are presented by EF defined as HFrEF (LVEF <40%), HFrEF (LVEF 40-49%) and HFpEF (LVEF $\geq$ 50%). 
+All analyses are presented by EF defined as HFrEF (LVEF <40%), HFrEF (LVEF 40-49%) and HFpEF (LVEF $\geq$ 50%). 
 
-Further, on the SwedeHF population, selected analyses are performed by `r paste0(subgroupvars_rs$label, collapse = ", ")`. 
+Further, selected analyses are performed by `r paste0(subgroupvars_rs$label, collapse = ", ")`. 
 
 ## Baseline characteristics
 
@@ -187,8 +156,7 @@ Trends in SGLT2i prevalent use, incident use and discontinuation was presented o
 
 ### Prevalent use
 
-The denominator was defined as patients not censored (alive and not emigrated from Sweden) and available in the population, 
-for the NPR population all patients since inclusion stopped 2021-12-31 and for the SwedeHF population patients recorded in SwedeHF at the time. 
+The denominator was defined as patients not censored (alive and not emigrated from Sweden) and available in the population, i.e. patients recorded in SwedeHF at the time. 
 
 The numerator was defined as patients in the denominator with an SGLT2i dispensation within 4 months prior. 
 
@@ -227,24 +195,9 @@ percfem <- rsdata %>%
   mutate(perc = fn(n / sum(n) * 100, 0)) %>%
   filter(shf_sex == "Female") %>%
   pull(perc)
-
-med_npr <- nprdata %>%
-  summarise(
-    med = fn(median(shf_age), dig = 0),
-    q1 = fn(quantile(shf_age, probs = 0.25), dig = 0),
-    q3 = fn(quantile(shf_age, probs = 0.75), dig = 0)
-  ) %>%
-  mutate(out = paste0(med, " (", q1, "-", q3, ")")) %>%
-  pull(out)
-
-percfem_npr <- nprdata %>%
-  count(shf_sex) %>%
-  mutate(perc = fn(n / sum(n) * 100, 0)) %>%
-  filter(shf_sex == "Female") %>%
-  pull(perc)
 ```
 
-The median (q1-q3) age is `r med` and `r percfem`% females in the SwedeHF population and `r med_npr` and `r percfem_npr`% in the NPR population.    
+The median (q1-q3) age is `r med` and `r percfem`% females.    
 
 ## Baseline characteristics
 
@@ -256,15 +209,9 @@ The median (q1-q3) age is `r med` and `r percfem`% females in the SwedeHF popula
 
 ## Trends in SGLT2i over time
 
-### SwedeHF population
-
 {{< include src/overtime_figs_rs.qmd >}}
 
-\clearpage 
-
-### NPR population
-
-{{< include src/overtime_figs_npr.qmd >}}
+{{< include src/overtime_figs_rs_alt.qmd >}}
 
 \clearpage
 
