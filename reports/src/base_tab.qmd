@@ -141,7 +141,7 @@ basetabfunc <- function(data) {
     ) %>%
     select(var, level, pmis, levels(rsdata %>% pull(sos_lm_sglt2)), p)
 
-  tabtmp <- sapply(tabvars_rs,
+  tabtmp <- sapply(tabvars,
     FUN = basetabfunc_inner, data = data,
     stratavar = "sos_lm_sglt2", catdig = catdig, contdig = contdig
   )
@@ -174,13 +174,14 @@ basetabfunc <- function(data) {
       ),
       # small fixes
       Variable = str_replace_all(Variable, fixed("Disposable income (100 SEK)"), "Income"),
-      No = if_else(Variable %in% c("Dapagliflozin", "Empagliflozin", "  Baseline-14 days", "  4 months-<Baseline"), "-", No),
+      No = if_else(Variable %in% c("  Dapagliflozin", "  Empagliflozin", "  Both", "  Baseline-14 days", "  4 months-<Baseline"), "-", No),
+      Yes = if_else(Variable %in% c("  None"), "-", Yes),
     )
 
   # footnotes
   tab <- tab %>%
     mutate(
-      footnote1 = if_else(!is.na(var) & var %in% modvars_rs, footnote_marker_alphabet(1, format = "latex"), "")
+      footnote1 = if_else(!is.na(var) & var %in% modvars, footnote_marker_alphabet(1, format = "latex"), "")
     ) %>%
     unite(footnote, starts_with("footnote"), sep = "")
 

@@ -105,7 +105,7 @@ Individual consent was not required, but patients were informed of entry into Sw
 #| tbl-cap: Information for flowchart - SwedeHF
 #| tbl-pos: "H"
 
-default_kable(flow_rs) %>%
+default_kable(flow) %>%
   row_spec(c(1, 11), bold = T)
 ```
 
@@ -140,7 +140,7 @@ Variables included in the model are indicated in @tbl-base-ref - @tbl-base-pef.
 
 All analyses are presented by EF defined as HFrEF (LVEF <40%), HFrEF (LVEF 40-49%) and HFpEF (LVEF $\geq$ 50%). 
 
-Further, selected analyses are performed by `r paste0(subgroupvars_rs$label, collapse = ", ")`. 
+Further, selected analyses are performed by `r paste0(subgroupvars$label, collapse = ", ")`. 
 
 ## Baseline characteristics
 
@@ -150,23 +150,9 @@ differences between groups with the chi-square test.
 Continuous variables are presented with median [first quartile-third quartile] and tested for 
 differences between groups with the Kruskal-Wallis test. 
 
-## Trends in SGLT2i over time
+## Temporal trends of SGLT2i use
 
-Trends in SGLT2i prevalent use, incident use and discontinuation was presented over calender time. 
-
-### Prevalent use
-
-The denominator was defined as patients not censored (alive and not emigrated from Sweden) and available in the population, i.e. patients recorded in SwedeHF at the time. 
-
-The numerator was defined as patients in the denominator with an SGLT2i dispensation within 4 months prior. 
-
-### Incident use
-
-Incident use was defined as prevalent use with the exception that only patients without a SGLT2i dispensation 16-4 months prior to baseline were included (thereby considered as SGLT2i naive).
-
-### Discontinuation
-
-Discontinuation was defined similar to the above but only patients with a SGLT2i dispensation 8-4 months prior to baseline were included (thereby considered to be SGLT2i users).
+Trends in SGLT2i prevalent use was presented over year of inclusion. 
 
 ## Associations between baseline characteristics and SGLT2i
 
@@ -177,6 +163,11 @@ including the variables shown in @tbl-predictors and @fig-predictors. The variab
 
 TO CHECK: Possible outliers were evaluated using Cook's distance and multicollinearity was 
 evaluated using the Variance Inflation Factor (VIF) without any cause for action. 
+
+## Discontinuation
+
+A patient was assumed to have discontinued if there was no dispensed prescription within a time frame of 5 months from the previous prescription 
+and was presented using a cumulative incidence curve where patients were censored 2023-12-31, emigration from Sweden or death.  
 
 # Results
 
@@ -207,17 +198,21 @@ The median (q1-q3) age is `r med` and `r percfem`% females.
 
 {{< include src/use_geo.qmd >}}
 
-## Trends in SGLT2i over time
+## Temporal trends of SGLT2i use
 
-{{< include src/overtime_figs_rs.qmd >}}
-
-{{< include src/overtime_figs_rs_alt.qmd >}}
+{{< include src/overtime_figs.qmd >}}
 
 \clearpage
 
 ## Associations between baseline characteristics and SGLT2i
 
 {{< include src/predictors.qmd >}}
+
+\clearpage
+
+## Discontinuation
+
+{{< include src/disc.qmd >}}
 
 \clearpage
 

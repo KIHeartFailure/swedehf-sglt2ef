@@ -34,3 +34,5 @@ library(miceadds)
 library(parallel)
 library(doParallel)
 library(foreach)
+
+library(survival)

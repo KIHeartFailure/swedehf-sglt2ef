@@ -1,11 +1,12 @@
 # Impute missing values ---------------------------------------------------
 
-modvars_rstmp <- c("shf_ef_cat", modvars_rs)
+modvarstmp <- c("shf_ef_cat", modvars)
 
 rsdatauseforimp <- rsdata %>%
-  select(lopnr, shf_indexdtm, !!!syms(modvars_rstmp), contains("sglt2"))
+  filter(popmain) %>%
+  select(lopnr, shf_indexdtm, !!!syms(modvarstmp), contains("sglt2"))
 
-noimpvars <- names(rsdatauseforimp)[!names(rsdatauseforimp) %in% modvars_rstmp]
+noimpvars <- names(rsdatauseforimp)[!names(rsdatauseforimp) %in% modvarstmp]
 
 ini <- mice(rsdatauseforimp, maxit = 0, print = F)
 
@@ -53,9 +54,9 @@ stopImplicitCluster()
 
 datacheck <- mice::complete(imprsdata, 1)
 
-for (i in seq_along(modvars_rstmp)) {
-  if (any(is.na(datacheck[, modvars_rstmp[i]]))) stop("Missing for imp vars")
+for (i in seq_along(modvarstmp)) {
+  if (any(is.na(datacheck[, modvarstmp[i]]))) stop("Missing for imp vars")
 }
-for (i in seq_along(modvars_rstmp)) {
-  if (any(is.na(datacheck[, modvars_rstmp[i]]))) print(paste0("Missing for ", modvars_rstmp[i]))
+for (i in seq_along(modvarstmp)) {
+  if (any(is.na(datacheck[, modvarstmp[i]]))) print(paste0("Missing for ", modvarstmp[i]))
 }

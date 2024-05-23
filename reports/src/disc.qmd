@@ -1,0 +1,76 @@
+```{r}
+#| label: fig-disc
+#| cache: true
+#| cache.comments: false
+#| fig-cap: "Discontinuation of SGLT2i"
+
+fit <- survfit(Surv(outtime_disc, disc == 1) ~ shf_ef_cat,
+  data = rsdata %>% filter(sos_lm_sglt2 == "Yes")
+)
+
+s <- summary(fit, times = seq(0, 366, 1), extend = T)
+
+plot_data <- tibble(
+  "time" = s$time,
+  "n.risk" = s$n.risk,
+  "n.event" = s$n.event,
+  "n.censor" = s$n.censor,
+  "estimate" = 1 - s$surv,
+  "strata" = s$strata
+) %>%
+  mutate(
+    strata = fct_rev(fct_inorder(str_remove_all(strata, "shf_ef_cat="))),
+  )
+
+p <- ggplot(plot_data, aes(x = time / 30.5, y = estimate, color = strata)) +
+  geom_step(aes(linetype = strata), linewidth = 1) +
+  scale_color_manual(values = c(global_cols[1:3])) +
+  scale_x_continuous(breaks = seq(0, 12, 1), limits = c(0, 12)) +
+  scale_y_continuous(labels = scales::label_percent(suffix = ""), limits = c(0, 0.15)) +
+  theme_classic() +
+  theme(
+    panel.grid.major = element_line(
+      color = "lightgrey",
+      linewidth = 0.5,
+      linetype = 2
+    ),
+    text = element_text(size = 20, face = "bold"),
+    legend.position = c(0.1, .9),
+    legend.title = element_blank(),
+    axis.text = element_text(color = "black"),
+  ) +
+  labs(x = "Follow-up (months)", y = "Discontinuation (%)")
+
+# n at risk
+table_data <- plot_data %>%
+  filter(
+    time %in% c(seq(0, 12, 2) * 30.5)
+  )
+
+t <- ggplot(table_data, aes(y = strata, x = time / 30.5)) +
+  geom_text(aes(label = n.risk), size = 6, fontface = "bold", colour = rep(global_cols[3:1], each = 7)) +
+  # scale_x_continuous(breaks = seq(0, endfollow, 1), limits = c(0, endfollow), expand = c(0, 0)) +
+  # scale_y_discrete(expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 12, 2), limits = c(0, 12)) +
+  coord_cartesian(xlim = c(0, 12), clip = "off") +
+  labs(
+    subtitle = "No. at risk",
+    y = "QoL"
+  ) +
+  theme(
+    text = element_text(size = 20, face = "bold"),
+    plot.caption = element_text(size = 20, face = "bold"),
+    panel.background = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_blank(),
+    # plot.margin = unit(c(0, 1, 0, 3), "cm"), # trouble
+    # axis.text.y = element_blank()
+    # axis.text.y = element_text(margin = margin(0, 0, 0, 100))
+    axis.text.y = element_text(hjust = 0, colour = global_cols[1:3], face = "bold")
+  )
+
+km <- (p / t) + plot_layout(height = c(1, .25))
+create_pptx(km)
+km
+```

@@ -21,7 +21,29 @@ rsdata <- rsdata %>%
       ),
       levels = 1:2, labels = c("<140", ">=140")
     ),
-    shf_potassium_cat = forcats::fct_recode(shf_potassium_cat, "Normakalemia (3.5-5)" = "Normakalemia", "Hypokalemia (<3.5)" = "Hypokalemia", "Hyperkalemia (>5)" = "Hyperkalemia")
+    sos_lm_sglt2type = factor(case_when(
+      sos_lm_sglt2_Dapagliflozin == "Yes" & sos_lm_sglt2_Empagliflozin == "Yes" ~ 3,
+      sos_lm_sglt2_Dapagliflozin == "Yes" ~ 1,
+      sos_lm_sglt2_Empagliflozin == "Yes" ~ 2,
+      TRUE ~ 0
+    ), levels = 0:3, labels = c("None", "Dapagliflozin", "Empagliflozin", "Both")),
+    sos_lm_sglt2prevusers = factor(
+      case_when(
+        sos_lm_sglt2prevuser1 == "Yes" ~ 5,
+        sos_lm_sglt2prevuser2 == "Yes" ~ 4,
+        sos_lm_sglt2prevuser3 == "Yes" ~ 3,
+        sos_lm_sglt2prevuser4 == "Yes" ~ 2,
+        TRUE ~ 1
+      ),
+      levels = 1:5, labels = c(
+        "No previous use",
+        "Baseline-14 days",
+        "4 months-<Baseline",
+        "4 months-2 years",
+        ">=2 years"
+      )
+    ),
+    sos_lm_sglt2num = if_else(sos_lm_sglt2 == "Yes", 1, 0),
   )
 
 # income

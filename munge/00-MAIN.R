@@ -14,11 +14,16 @@ load(here(paste0(shfdbpath, "data/v421/meta_statreport.RData")))
 # Munge data --------------------------------------------------------------
 
 # swedehf
-source(here("munge/01-vars-rs.R"))
-source(here("munge/02-pop-selection-rs.R"))
-source(here("munge/03-fix-vars-rs.R"))
-source(here("munge/04-pdr-sglt2-rs.R"))
-source(here("munge/05-mi-rs.R"))
+source(here("munge/01-vars.R"))
+source(here("munge/02-pop-selection.R"))
+source(here("munge/03-pdr-sglt2.R"))
+source(here("munge/04-fix-vars.R"))
+source(here("munge/05-mi.R"))
+
+rsdataovertime <- rsdata
+rsdata <- rsdata %>%
+  filter(popmain) %>%
+  mutate(shf_indexyearquarter = droplevels(shf_indexyearquarter))
 
 # Cache/save data ---------------------------------------------------------
 
@@ -26,18 +31,16 @@ save(
   file = here("data/clean-data/rsdata.RData"),
   list = c(
     "rsdata",
+    "rsdataovertime",
     "imprsdata",
-    "flow_rs",
-    "modvars_rs",
-    "tabvars_rs",
-    "subgroupvars_rs",
+    "flow",
+    "modvars",
+    "tabvars",
+    "subgroupvars",
     "metavars",
     "deathmeta",
     "outcommeta",
-    "metalm",
-    "overtime_prev",
-    "overtime_inc",
-    "overtime_disc"
+    "metalm"
   )
 )
 

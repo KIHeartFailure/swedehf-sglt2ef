@@ -1,9 +1,8 @@
 # Variables for baseline tables -----------------------------------------------
 
-tabvars_rs <- c(
+tabvars <- c(
   # type of sglt2
-  "sos_lm_sglt2_Dapagliflozin",
-  "sos_lm_sglt2_Empagliflozin",
+  "sos_lm_sglt2type",
   "sos_lm_sglt2prevusers",
 
   # demo
@@ -77,8 +76,7 @@ tabvars_rs <- c(
 # Variables for models (imputation, log, cox reg) ----------------------------
 
 tabvars_not_in_mod <- c(
-  "sos_lm_sglt2_Dapagliflozin",
-  "sos_lm_sglt2_Empagliflozin",
+  "sos_lm_sglt2type",
   "sos_lm_sglt2prevusers",
   "shf_age",
   "shf_nyha",
@@ -99,23 +97,21 @@ tabvars_not_in_mod <- c(
   "shf_qol_cat"
 )
 
-modvars_rs <- tabvars_rs[!(tabvars_rs %in% tabvars_not_in_mod)]
+modvars <- tabvars[!(tabvars %in% tabvars_not_in_mod)]
 
 metavars <- bind_rows(
   metavars,
   tibble(
     variable = c(
       "sos_lm_sglt2",
-      "sos_lm_sglt2_Dapagliflozin",
-      "sos_lm_sglt2_Empagliflozin",
+      "sos_lm_sglt2type",
       "sos_lm_sglt2prevusers",
       "shf_indexyearquarter",
       "sos_prevhosphf1yr"
     ),
     label = c(
       "SGLT2i",
-      "Dapagliflozin",
-      "Empagliflozin",
+      "SGLT2i substance",
       "Previous SGLT2i use",
       "Baseline year:quarter",
       "Previous HFH < 1 year"
@@ -123,10 +119,10 @@ metavars <- bind_rows(
   )
 )
 
-subgroupvars_rs <- tibble(variable = c(
+subgroupvars <- tibble(variable = c(
   "shf_sex", "shf_age_cat", "shf_gfrckdepi_cat", "shf_sos_com_diabetes",
   "sos_prevhosphf1yr", "shf_location", "shf_durationhf"
 ))
 
-subgroupvars_rs <- left_join(subgroupvars_rs, metavars %>% select(variable, label, unit), by = "variable") %>%
+subgroupvars <- left_join(subgroupvars, metavars %>% select(variable, label, unit), by = "variable") %>%
   mutate(labelunit = if_else(!is.na(unit), paste0(label, " (", unit, ")"), label))

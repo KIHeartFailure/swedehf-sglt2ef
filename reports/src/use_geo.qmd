@@ -36,7 +36,8 @@ region <- rsdata %>%
       ),
       levels = 1:7,
       labels = c("31-40", "41-50", "51-60", "61-70", "71-80", "81-90", "91-100")
-    )
+    ),
+    per_cat = fct_na_value_to_level(per_cat, "Missing")
   )
 
 # if (any(is.na(region$per_cat))) stop("Missing for region, percent outside range")
@@ -87,6 +88,8 @@ default_kable(regiontab,
 
 mapfig <- left_join(map, region, by = c("NAME_1" = "shf_centreregion_map"))
 
+mapcols <- RColorBrewer::brewer.pal(9, "PuBu")
+
 pall <- ggplot(mapfig, aes(fill = per_cat)) +
   geom_sf() +
   theme_void() +
@@ -94,32 +97,7 @@ pall <- ggplot(mapfig, aes(fill = per_cat)) +
     text = element_text(size = 20, face = "bold"),
     legend.position = "bottom"
   ) +
-  scale_fill_ordinal(direction = -1) +
-  labs(fill = "SGLT2i (%)") +
-  facet_wrap(vars(shf_ef_cat), ncol = 3)
-
-if (pptx) {
-  create_pptx(pall, height = 10, width = 8)
-}
-pall
-```
-
-```{r}
-#| label: fig-geo-alt
-#| cache: true
-#| cache.comments: false
-#| dependson: geoprep
-#| fig-cap: "SGLT2i use at registration in SwedeHF by county of centre - alternaive with continous values"
-#| fig-width: 8
-#| fig-height: 10
-
-pall <- ggplot(mapfig, aes(fill = per)) +
-  geom_sf() +
-  theme_void() +
-  theme(
-    text = element_text(size = 20, face = "bold"),
-    legend.position = "bottom"
-  ) +
+  scale_fill_manual(values = c(mapcols[3:9], "lightgrey")) +
   labs(fill = "SGLT2i (%)") +
   facet_wrap(vars(shf_ef_cat), ncol = 3)
 
