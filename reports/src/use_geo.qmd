@@ -3,8 +3,7 @@
 #| cache: true
 #| cache.comments: false
 
-swedenmap <- readr::read_rds("D:/STATISTIK/Projects/20240208_sglt2ef/data/clean-data/gadm/gadm41_SWE_1_pk.rds")
-# swedenmap <- readr::read_rds("D:/STATISTIK/Projects/20240208_sglt2ef/gadm36_SWE_1_sp.rds")
+swedenmap <- readr::read_rds("F:/STATISTIK/Projects/20240208_sglt2ef/data/clean-data/gadm/gadm41_SWE_1_pk.rds")
 map <- swedenmap %>%
   terra::unwrap() %>%
   st_as_sf()

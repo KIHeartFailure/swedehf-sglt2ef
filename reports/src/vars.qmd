@@ -5,7 +5,7 @@
 #| tbl-cap: "Variable definitions and data sources"
 #| tbl-pos: "H"
 
-vars <- tibble(var = c("sos_lm_sglt2", tabvars)) %>%
+vars <- tibble(var = c("sos_lm_sglt2", "sos_lm_sglt2_Empagliflozin", "sos_lm_sglt2_Dapagliflozin", setdiff(tabvars, c("sos_lm_sglt2type", "sos_lm_sglt2prevusers")))) %>%
   mutate(
     order = 1:n(),
     # if recoding or categorizing will still get org label

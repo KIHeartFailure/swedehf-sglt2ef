@@ -4,7 +4,8 @@ modvarstmp <- c("shf_ef_cat", modvars)
 
 rsdatauseforimp <- rsdata %>%
   filter(popmain) %>%
-  select(lopnr, shf_indexdtm, !!!syms(modvarstmp), contains("sglt2"))
+  select(lopnr, shf_indexdtm, !!!syms(modvarstmp), contains("sglt2")) %>%
+  mutate(shf_indexyearquarter = droplevels(shf_indexyearquarter))
 
 noimpvars <- names(rsdatauseforimp)[!names(rsdatauseforimp) %in% modvarstmp]
 
@@ -16,7 +17,7 @@ pred[noimpvars, ] <- 0 # redundant
 
 # change method used in imputation to prop odds model
 meth <- ini$method
-meth[c("scb_education", "shf_ntprobnp_cat", "scb_dispincome_cat", "shf_age_cat")] <- "polr"
+meth[c("scb_education", "shf_ntprobnp_cat", "scb_dispincome_cat", "shf_age_cat", "shf_indexyearquarter")] <- "polr"
 meth[noimpvars] <- ""
 
 ## check no cores

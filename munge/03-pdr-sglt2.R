@@ -13,10 +13,10 @@ lmtmp <- inner_join(
     select(lopnr, shf_indexdtm),
   lmsglt2,
   by = c("lopnr")
-)
+) %>%
+  mutate(diff = as.numeric(EDATUM - shf_indexdtm))
 
 lmtmp2 <- lmtmp %>%
-  mutate(diff = as.numeric(EDATUM - shf_indexdtm)) %>%
   filter(diff >= -30.5 * 4, diff <= 14) %>%
   select(lopnr, shf_indexdtm, EDATUM, ATC)
 
@@ -41,7 +41,6 @@ rm(lmtmp2)
 
 lmprevfunc <- function(timestart, timestop, medname) {
   lmtmp2 <- lmtmp %>%
-    mutate(diff = as.numeric(EDATUM - shf_indexdtm)) %>%
     filter(diff <= timestart & diff >= timestop) %>%
     select(lopnr, shf_indexdtm, EDATUM, ATC)
 
@@ -59,22 +58,34 @@ lmprevfunc(timestart = 14, timestop = 0, "sglt2prevuser4")
 
 # Discontinuation ---------------------------------------------------------
 
-lmtmp <- inner_join(
+lmtmp <- left_join(
   rsdata %>%
-    filter(popmain) %>%
-    select(lopnr, shf_indexdtm),
+    filter(popmain & sos_lm_sglt2 == "Yes") %>%
+    select(lopnr, shf_indexdtm, censdtm),
   lmsglt2,
   by = c("lopnr")
-)
+) %>%
+  mutate(diff = as.numeric(EDATUM - shf_indexdtm)) %>%
+  filter(diff >= -30.5 * 4 & EDATUM <= censdtm) %>%
+  select(lopnr, shf_indexdtm, EDATUM)
+
+lmtmp <- bind_rows(
+  lmtmp,
+  rsdata %>%
+    filter(popmain & sos_lm_sglt2 == "Yes") %>%
+    mutate(
+      EDATUM = censdtm,
+      lastpost = 1
+    ) %>%
+    select(lopnr, shf_indexdtm, EDATUM, lastpost)
+) %>%
+  arrange(lopnr, EDATUM)
 
 lmtmp2 <- lmtmp %>%
-  mutate(diff = as.numeric(EDATUM - shf_indexdtm)) %>%
-  filter(diff >= -30.5 * 4) %>%
-  select(lopnr, shf_indexdtm, EDATUM) %>%
   group_by(lopnr) %>%
   arrange(EDATUM) %>%
   mutate(
-    diff = as.numeric(EDATUM - lag(EDATUM)),
+    diff = as.numeric(lead(EDATUM) - EDATUM),
     disc = if_else(diff >= 30.5 * 5, 1, 0)
   ) %>%
   ungroup() %>%
@@ -84,8 +95,8 @@ lmtmp2 <- lmtmp %>%
   arrange(EDATUM) %>%
   slice(1) %>%
   ungroup() %>%
-  mutate(outtime_disctmp = as.numeric(EDATUM - shf_indexdtm)) %>%
-  select(lopnr, outtime_disctmp)
+  mutate(outtime_disctmp = as.numeric(EDATUM - shf_indexdtm) + 30.5 * 4) %>%
+  select(lopnr, outtime_disctmp, disc)
 
 rsdata <- left_join(rsdata,
   lmtmp2,
@@ -93,6 +104,6 @@ rsdata <- left_join(rsdata,
 ) %>%
   mutate(
     outtime_disc = pmin(sos_outtime_death, outtime_disctmp, na.rm = T),
-    disc = if_else(!is.na(outtime_disctmp) & outtime_disc == outtime_disctmp, 1, 0)
+    disc = replace_na(disc, 0)
   ) %>%
   select(-outtime_disctmp)

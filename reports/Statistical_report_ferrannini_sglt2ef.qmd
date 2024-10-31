@@ -1,6 +1,5 @@
 ---
 title: "Statistical report: SGLT2i across the EF spectrum"
-subtitle: Draft
 date: "`r Sys.Date()`"
 cover: static/ki_logo_vert_rgb.png
 editor: source
@@ -59,7 +58,7 @@ sheets <- names(wb)
 
 # load pptx file with figs
 figs <- officer::read_pptx(path = here::here("output/figs/figs.pptx"))
-pptx <- FALSE
+pptx <- T
 ```           
 
 \newpage
@@ -76,7 +75,7 @@ entered into an electronic database managed by the Uppsala Clinical Research
 Center (Uppsala, Sweden). Up to April 2017 the only inclusion criterion was a 
 clinical diagnosis of HF, which was thereafter defined according to the ICD-10 
 codes I50.0, I50.1, I50.9, I42.0, I42.6, I42.7, I25.5, I11.0, I13.0, I13.2. 
-In 2021, 69 of 76 Swedish hospitals enrolled patients in SwedeHF, which had a 32% coverage of the prevalent HF population in Sweden[@annualreport]. 
+In 2023, 69 of 76 Swedish hospitals enrolled patients in SwedeHF, which had a 59% coverage of the prevalent HF population in Sweden[@annualreport]. 
 
 SwedeHF was linked with national Swedish registries (SHFDB version 4.2.1) through the 
 Swedish personal identity number (PIN)[@pin]: 
@@ -120,8 +119,6 @@ Information on data sources, definitions etc. are found https://kiheartfailure.g
 
 {{< include src/vars.qmd >}}
 
-Please CHECK ATC codes for sglt2!
-
 # Statistical analysis 
 
 ## General
@@ -134,13 +131,11 @@ comparisons were made and therefore the results should be viewed with care.
 
 Missing data was imputed with multiple imputation (n = 10) using mice [@mice] 
 and Rubin’s rules was used for combining estimates and standard errors across imputed data sets. 
-Variables included in the model are indicated in @tbl-base-ref - @tbl-base-pef. 
+Variables included in the model are indicated in @tbl-base-ref - @tbl-base-pef. SGLT2i is not included in the model. 
 
 ## Subgroups
 
 All analyses are presented by EF defined as HFrEF (LVEF <40%), HFrEF (LVEF 40-49%) and HFpEF (LVEF $\geq$ 50%). 
-
-Further, selected analyses are performed by `r paste0(subgroupvars$label, collapse = ", ")`. 
 
 ## Baseline characteristics
 
@@ -152,22 +147,30 @@ differences between groups with the Kruskal-Wallis test.
 
 ## Temporal trends of SGLT2i use
 
-Trends in SGLT2i prevalent use was presented over year of inclusion. 
+Trends in SGLT2i use was presented by inclusion Month/Year in SwedeHF by EF, `r paste0(subgroupvars$label, collapse = ", ")`. 
 
 ## Associations between baseline characteristics and SGLT2i
 
-The association between baseline characteristics and SGLT2i was evaluated using a multivariable logistic regression 
+The association between baseline characteristics and SGLT2i was evaluated using univariable and multivariable logistic regression models
 including the variables shown in @tbl-predictors and @fig-predictors. The variables were selected based on clinical relevance. 
+
+This was done partly "Overall", and partly by EF, 
+where the interaction between EF and the respective variable was included in order to evaluate possible differences across the EF spectrum. 
+This was done partly with only EF, the respective variable and the interaction between the two and presented as "Crude" estimates and 
+partly including all the other variables (but with only the interaction between EF and the respective variable) and presented as "Adjusted". 
 
 ### Assumptions
 
-TO CHECK: Possible outliers were evaluated using Cook's distance and multicollinearity was 
+Possible outliers were evaluated using Cook's distance and multicollinearity was 
 evaluated using the Variance Inflation Factor (VIF) without any cause for action. 
 
 ## Discontinuation
 
-A patient was assumed to have discontinued if there was no dispensed prescription within a time frame of 5 months from the previous prescription 
+A patient was assumed to have discontinued if there was no dispensed prescription within a time frame of 5 months from the previous prescription. 
+The time of discontinuation was set to the last prescription + 4 months 
 and was presented using a cumulative incidence curve where patients were censored 2023-12-31, emigration from Sweden or death.  
+
+\clearpage
 
 # Results
 

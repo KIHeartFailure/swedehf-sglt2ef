@@ -214,8 +214,8 @@ size_use <- 10
 # min(predout$lci)
 # max(predout$uci)
 
-xmin <- .35
-xmax <- 4
+xmin <- .2
+xmax <- 5
 
 p1 <- ggplot(predoutplot %>% filter(ef == "HFrEF" & model == "adj"), aes(x = or, y = var2, color = cols)) +
   # Add a reference dashed line at 1
@@ -646,8 +646,8 @@ size_use <- 10
 # min(predout$lci)
 # max(predout$uci)
 
-xmin <- .35
-xmax <- 4
+xmin <- .2
+xmax <- 5
 
 p1 <- ggplot(predoutoverallplot, aes(x = or, y = var2, color = cols)) +
   # Add a reference dashed line at 1

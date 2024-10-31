@@ -4,16 +4,6 @@ rsdata <- rsdata %>%
     shf_indexyearmonth_num = as.numeric(shf_indexyearmonth),
     shf_quarter = quarter(shf_indexdtm),
     shf_indexyearquarter = paste0(shf_indexyear, ":", shf_quarter),
-    sos_prevhosphf1yr = factor(
-      case_when(
-        is.na(sos_timeprevhosphf) ~ 0,
-        sos_timeprevhosphf <= 365 ~ 1,
-        shf_location == "In-patient" ~ 1,
-        TRUE ~ 0
-      ),
-      levels = 0:1,
-      labels = c("No", "Yes")
-    ),
     shf_bpsys_cat = factor(
       case_when(
         shf_bpsys < 140 ~ 1,
@@ -42,8 +32,7 @@ rsdata <- rsdata %>%
         "4 months-2 years",
         ">=2 years"
       )
-    ),
-    sos_lm_sglt2num = if_else(sos_lm_sglt2 == "Yes", 1, 0),
+    )
   )
 
 # income

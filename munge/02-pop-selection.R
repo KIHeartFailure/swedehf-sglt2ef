@@ -5,9 +5,11 @@ flow <- flow[c(1:8, 10), 1:2]
 names(flow) <- c("Criteria", "N")
 
 flow <- flow %>%
-  mutate(Criteria = if_else(
-    Criteria == "Exclude posts with with index date > 2023-12-31 (SwedeHF)/2021-12-31 (NPR HF, Controls)",
-    "Exclude posts with with index date > 2023-12-31", Criteria
+  mutate(Criteria = case_when(
+    Criteria == "Exclude posts with with index date > 2023-12-31 (SwedeHF)/2021-12-31 (NPR HF, Controls)" ~ "Exclude posts with index date > 2023-12-31",
+    Criteria == "Exclude posts censored end fu < index" ~ "Exclude posts with end of follow-up < index",
+    Criteria == "Exclude posts with with index date < 2000-01-01" ~ "Exclude posts with index date < 2000-01-01",
+    TRUE ~ Criteria
   ))
 
 flow <- rbind(c("General inclusion/exclusion criteria", ""), flow)
@@ -36,7 +38,7 @@ flow <- rbind(flow, c("Exclude posts with eGFR < 25", nrow(rsdata)))
 
 rsdata <- rsdata %>%
   filter(sos_com_dialysis == "No")
-flow <- rbind(flow, c("Exclude posts with previous dialysis (SHOULD BE WITHIN CERTAIN TME FRAME????", nrow(rsdata)))
+flow <- rbind(flow, c("Exclude posts with previous dialysis within 5 years", nrow(rsdata)))
 
 rsdata <- rsdata %>%
   filter(sos_outtime_death > 14)
