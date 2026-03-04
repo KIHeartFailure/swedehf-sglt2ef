@@ -66,9 +66,10 @@ tabvars <- c(
 
   # socec
   "scb_famtype",
-  "scb_child",
+  # "scb_child",
   "scb_education",
   "scb_dispincome_cat",
+  "scb_se",
   "shf_qol",
   "shf_qol_cat"
 )
@@ -93,6 +94,8 @@ tabvars_not_in_mod <- c(
   "shf_bmi",
   "sos_com_charlsonci",
   "sos_com_charlsonci_cat",
+  "scb_education",
+  "scb_dispincome_cat",
   "shf_qol",
   "shf_qol_cat"
 )
@@ -108,7 +111,8 @@ metavars <- bind_rows(
       "sos_lm_sglt2_Dapagliflozin",
       "sos_lm_sglt2type",
       "sos_lm_sglt2prevusers",
-      "shf_indexyearquarter"
+      "shf_indexyearquarter",
+      "scb_se"
     ),
     label = c(
       "SGLT2i",
@@ -116,7 +120,8 @@ metavars <- bind_rows(
       "Dapagliflozin",
       "SGLT2i substance",
       "Previous SGLT2i use",
-      "Baseline year:quarter"
+      "Baseline year:quarter",
+      "Socioeconomic gradients"
     )
   )
 )

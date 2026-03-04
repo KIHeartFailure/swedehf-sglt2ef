@@ -3,6 +3,7 @@ library(rmarkdown)
 library(kableExtra)
 
 # data import/export
+library(arrow)
 library(haven)
 library(openxlsx)
 

@@ -77,7 +77,7 @@ clinical diagnosis of HF, which was thereafter defined according to the ICD-10
 codes I50.0, I50.1, I50.9, I42.0, I42.6, I42.7, I25.5, I11.0, I13.0, I13.2. 
 In 2023, 69 of 76 Swedish hospitals enrolled patients in SwedeHF, which had a 59% coverage of the prevalent HF population in Sweden[@annualreport]. 
 
-SwedeHF was linked with national Swedish registries (SHFDB version 4.2.1) through the 
+SwedeHF was linked with national Swedish registries (SHFDB version 5.0.1) through the 
 Swedish personal identity number (PIN)[@pin]: 
 
 - The National Patient Register (The National Board of Health and Welfare) for additional comorbidities
@@ -94,7 +94,7 @@ in the Acknowledgements of any resulting articles.
 
 ## Ethics and Informed consent
 
-The study was approved by the Swedish Ethical Review Authority, dnr 2021-04326. 
+The study was approved by the Swedish Ethical Review Authority, dnr 2024-04229-01. 
 Individual consent was not required, but patients were informed of entry into SwedeHF and able to opt‐out.
 
 ## Inclusion/exclusion criteria
@@ -105,7 +105,7 @@ Individual consent was not required, but patients were informed of entry into Sw
 #| tbl-pos: "H"
 
 default_kable(flow) %>%
-  row_spec(c(1, 11), bold = T)
+  row_spec(c(1, 10), bold = T)
 ```
 
 First patient in: `r min(rsdata$shf_indexdtm)` and last patient in: `r max(rsdata$shf_indexdtm)` 
@@ -115,9 +115,18 @@ Baseline is date of visits or date of discharge for the visit/hospitalization re
 
 ## Definitions
 
-Information on data sources, definitions etc. are found https://kiheartfailure.github.io/shfdb4/.
+Information on data sources, definitions etc. are found https://kiheartfailure.github.io/shfdb5/.
 
 {{< include src/vars.qmd >}}
+
+### Socioeconomic gradients
+
+The socioeconomic gradients were defined as 
+
+High - University and in the 3rd income tertile
+Medium high - University or in the 3rd income tertile 
+Low - Compulsory school and in the 1st income tertile 
+Medium low - Any other combination than the above 
 
 # Statistical analysis 
 
@@ -168,7 +177,7 @@ evaluated using the Variance Inflation Factor (VIF) without any cause for action
 
 A patient was assumed to have discontinued if there was no dispensed prescription within a time frame of 5 months from the previous prescription. 
 The time of discontinuation was set to the last prescription + 4 months 
-and was presented using a cumulative incidence curve where patients were censored 2023-12-31, emigration from Sweden or death.  
+and was presented using a cumulative incidence curve where patients were censored 2024-12-31, emigration from Sweden or death.  
 
 \clearpage
 

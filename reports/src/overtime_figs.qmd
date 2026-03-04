@@ -3,6 +3,8 @@
 #| cache: true
 #| cache.comments: false
 
+cols <- RColorBrewer::brewer.pal(9, "PuBu")
+
 overtimefunc <- function(data = rsdataovertime, xvar, leglab = NULL, ybreaks = seq(0, 100, 25)) {
   if (xvar == "overall") {
     data <- data %>%
@@ -14,7 +16,7 @@ overtimefunc <- function(data = rsdataovertime, xvar, leglab = NULL, ybreaks = s
 
     datalab <- data %>%
       arrange(shf_indexyearmonth) %>%
-      filter(shf_indexyearmonth %in% c("Nov 2020", "Sep 2022", "Dec 2023")) %>%
+      filter(shf_indexyearmonth %in% c("Nov 2020", "Sept 2022", "Dec 2024")) %>%
       mutate(perprint = fn(per, 0)) %>%
       ungroup()
 
@@ -22,7 +24,7 @@ overtimefunc <- function(data = rsdataovertime, xvar, leglab = NULL, ybreaks = s
       data,
       aes(x = shf_indexyearmonth, y = per)
     ) +
-      geom_line(linewidth = 1, group = 1, color = global_cols[1]) +
+      geom_line(linewidth = 2, group = 1, color = cols[8]) +
       scale_color_manual(values = c(global_cols[1])) +
       scale_x_discrete(
         breaks = datalab %>% pull(shf_indexyearmonth), expand = c(0.06, 0.06)
@@ -32,17 +34,17 @@ overtimefunc <- function(data = rsdataovertime, xvar, leglab = NULL, ybreaks = s
       ) +
       theme_classic() +
       theme(
-        panel.grid.major = element_line(
-          color = "lightgrey",
-          linewidth = 0.5,
+        panel.grid.major.x = element_line(
+          color = "darkgrey",
+          linewidth = 1,
           linetype = 2
         ),
         text = element_text(size = 20, face = "bold"),
         axis.text = element_text(color = "black"),
       ) +
-      labs(x = "Month Year", y = "Percent (%)") +
+      labs(x = "Month Year", y = "Percent") +
       geom_text_repel(
-        data = datalab, aes(x = shf_indexyearmonth, y = per, label = perprint), color = global_cols[1],
+        data = datalab, aes(x = shf_indexyearmonth, y = per, label = perprint), color = cols[8],
         show.legend = FALSE, size = 6, fontface = "bold", inherit.aes = F, direction = "y"
       )
   } else if (xvar == "ef") {
@@ -56,7 +58,7 @@ overtimefunc <- function(data = rsdataovertime, xvar, leglab = NULL, ybreaks = s
     datalab <- data %>%
       group_by(shf_ef_cat) %>%
       arrange(shf_indexyearmonth) %>%
-      filter(shf_indexyearmonth %in% c("Nov 2020", "Sep 2022", "Dec 2023")) %>%
+      filter(shf_indexyearmonth %in% c("Nov 2020", "Sept 2022", "Dec 2024")) %>%
       mutate(perprint = fn(per, 0)) %>%
       ungroup()
 
@@ -64,8 +66,8 @@ overtimefunc <- function(data = rsdataovertime, xvar, leglab = NULL, ybreaks = s
       data,
       aes(x = shf_indexyearmonth, y = per, group = shf_ef_cat)
     ) +
-      geom_line(aes(color = shf_ef_cat), linewidth = 1) +
-      scale_color_manual(values = c(global_cols[1:3])) +
+      geom_line(aes(color = shf_ef_cat), linewidth = 2) +
+      scale_color_manual(values = c(cols[c(9, 7, 5)])) +
       scale_x_discrete(
         breaks = datalab %>% pull(shf_indexyearmonth), expand = c(0.06, 0.06)
       ) +
@@ -74,9 +76,9 @@ overtimefunc <- function(data = rsdataovertime, xvar, leglab = NULL, ybreaks = s
       ) +
       theme_classic() +
       theme(
-        panel.grid.major = element_line(
-          color = "lightgrey",
-          linewidth = 0.5,
+        panel.grid.major.x = element_line(
+          color = "darkgrey",
+          linewidth = 1,
           linetype = 2
         ),
         text = element_text(size = 20, face = "bold"),
@@ -85,7 +87,7 @@ overtimefunc <- function(data = rsdataovertime, xvar, leglab = NULL, ybreaks = s
         legend.text = element_text(size = 20, face = "bold"),
         axis.text = element_text(color = "black"),
       ) +
-      labs(x = "Month Year", y = "Percent (%)") +
+      labs(x = "Month Year", y = "Percent") +
       geom_text_repel(
         data = datalab, aes(x = shf_indexyearmonth, y = per, label = perprint, color = shf_ef_cat),
         show.legend = FALSE, size = 6, fontface = "bold", inherit.aes = F, direction = "y"
@@ -117,16 +119,18 @@ overtimefunc <- function(data = rsdataovertime, xvar, leglab = NULL, ybreaks = s
     datalab <- data %>%
       group_by(shf_ef_cat, !!sym(xvar)) %>%
       arrange(shf_indexyearmonth) %>%
-      filter(shf_indexyearmonth %in% c("Nov 2020", "Sep 2022", "Dec 2023")) %>%
+      filter(shf_indexyearmonth %in% c("Nov 2020", "Sept 2022", "Dec 2024")) %>%
       mutate(perprint = fn(per, 0)) %>%
       ungroup()
+
+    ybreaks <- seq(0, 100, 50)
 
     p <- ggplot(
       data,
       aes(x = shf_indexyearmonth, y = per, group = !!sym(xvar))
     ) +
-      geom_line(aes(color = !!sym(xvar)), linewidth = 1) +
-      scale_color_manual(values = c(global_cols[1:3])) +
+      geom_line(aes(color = !!sym(xvar)), linewidth = 2) +
+      scale_color_manual(values = c(cols[c(9, 7, 5)])) +
       scale_x_discrete(
         breaks = datalab %>% pull(shf_indexyearmonth)
       ) +
@@ -135,9 +139,9 @@ overtimefunc <- function(data = rsdataovertime, xvar, leglab = NULL, ybreaks = s
       ) +
       theme_classic() +
       theme(
-        panel.grid.major = element_line(
-          color = "lightgrey",
-          linewidth = 0.5,
+        panel.grid.major.x = element_line(
+          color = "darkgrey",
+          linewidth = 1,
           linetype = 2
         ),
         text = element_text(size = 20, face = "bold"),
@@ -147,7 +151,7 @@ overtimefunc <- function(data = rsdataovertime, xvar, leglab = NULL, ybreaks = s
         axis.text = element_text(color = "black"),
         panel.border = element_rect(fill = NA)
       ) +
-      labs(x = "Month Year", y = "Percent (%)", color = leglab) +
+      labs(x = "Month Year", y = "Percent", color = leglab) +
       geom_text_repel(
         data = datalab, aes(x = shf_indexyearmonth, y = per, label = perprint, color = !!sym(xvar)),
         show.legend = FALSE, size = 6, fontface = "bold", inherit.aes = F, direction = "y"
@@ -156,7 +160,11 @@ overtimefunc <- function(data = rsdataovertime, xvar, leglab = NULL, ybreaks = s
   }
 
   if (pptx) {
-    create_pptx(p)
+    if (xvar %in% c("overall", "ef")) {
+      create_pptx(p)
+    } else {
+      create_pptx(p, width = 10, height = 10)
+    }
   }
   p
 }
@@ -168,13 +176,33 @@ overtimefunc <- function(data = rsdataovertime, xvar, leglab = NULL, ybreaks = s
 #| cache.comments: false
 #| dependson: overtimefunc
 #| fig-cap: "Temporal trends of SGLT2i use"
-#| fig-subcap: !expr c("Overall", "EF", subgroupvars$label[1:4])
+#| fig-subcap:
+#|  - "Overall"
+#|  - "EF"
 #| layout-ncol: 2
-#| layout-nrow: 4
+#| layout-nrow: 1
 
 overtimefunc(xvar = "overall")
 
 overtimefunc(xvar = "ef")
+```
+
+
+```{r}
+#| label: fig-overtime-prev-2
+#| cache: true
+#| cache.comments: false
+#| dependson: overtimefunc
+#| fig-cap: "Temporal trends of SGLT2i use - continued"
+#| fig-subcap:
+#|  - "Sex"
+#|  - "Age"
+#|  - "eGFR"
+#|  - "Diabetes"
+#| layout-ncol: 2
+#| layout-nrow: 2
+#| fig-width: 10
+#| fig-height: 10
 
 nr <- 1
 overtimefunc(xvar = subgroupvars$variable[nr])
@@ -190,14 +218,20 @@ overtimefunc(xvar = subgroupvars$variable[nr], leglab = subgroupvars$labelunit[n
 ```
 
 ```{r}
-#| label: fig-overtime-prev-2
+#| label: fig-overtime-prev-3
 #| cache: true
 #| cache.comments: false
 #| dependson: overtimefunc
 #| fig-cap: "Temporal trends of SGLT2i use - continued"
-#| fig-subcap: !expr c(subgroupvars$label[5:7], "SGLT2i type")
+#| fig-subcap:
+#| - "Previous HFH < 1 year"
+#| - "Location"
+#| - "Duration of HF"
+#| - "SGLT2i type"
 #| layout-ncol: 2
-#| layout-nrow: 4
+#| layout-nrow: 2
+#| fig-width: 10
+#| fig-height: 10
 
 nr <- 5
 overtimefunc(xvar = subgroupvars$variable[nr], leglab = subgroupvars$labelunit[nr])

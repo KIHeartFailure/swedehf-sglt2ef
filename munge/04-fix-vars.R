@@ -32,7 +32,8 @@ rsdata <- rsdata %>%
         "4 months-2 years",
         ">=2 years"
       )
-    )
+    ),
+    shf_ef_cat = fct_recode(shf_ef_cat, HFrEF = "HFrEF (<40)", HFmrEF = "HFmrEF (40-49)", HFpEF = "HFpEF (>=50)")
   )
 
 # income
@@ -58,7 +59,14 @@ rsdata <- left_join(
       ),
       levels = 1:3,
       labels = c("1st tertile within year", "2nd tertile within year", "3rd tertile within year")
-    )
+    ),
+    scb_se = factor(case_when(
+      is.na(scb_education) | is.na(scb_dispincome_cat) ~ NA_real_,
+      scb_education == "University" & scb_dispincome_cat == "3rd tertile within year" ~ 4,
+      scb_education == "Compulsory school" & scb_dispincome_cat == "1st tertile within year" ~ 1,
+      scb_education == "University" | scb_dispincome_cat == "3rd tertile within year" ~ 3,
+      TRUE ~ 2
+    ), levels = 1:4, labels = c("Low", "Medium low", "Medium high", "High"))
   ) %>%
   select(-`33%`, -`66%`)
 

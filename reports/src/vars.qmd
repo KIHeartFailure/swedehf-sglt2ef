@@ -90,8 +90,7 @@ vars <- vars %>%
       str_detect(var, "sos_lm") ~ paste0("NPDR: ", Code),
       str_detect(var, "sos_") & is.na(Code) ~ "NPR"
     ),
-    data3 = if_else(str_detect(var, "scb_famtype|scb_education|scb_dispincome"), "LISA", NA),
-    data4 = if_else(str_detect(var, "scb_child"), "RTP", NA),
+    data3 = if_else(str_detect(var, "scb_famtype|scb_education|scb_dispincome|scb_se"), "LISA", NA),
     footnote1 = if_else(str_detect(var, "sos_com") &
       !Variable %in% c("Charlson Comorbidity Index"),
     footnote_marker_alphabet(1, format = "latex"), ""
@@ -148,7 +147,7 @@ default_kable(vars,
     footnote_order = c("general", "symbol", "alphabet"),
     general_title = "",
     general = c(
-      "Abbreviations: SwedeHF, The Swedish Heart Failure Registry; NPR, The National Patient Register; NPDR, The National Prescribed Drug Register; LISA, Longitudinal integrated database for health insurance and labour market studies; RTP, Register of the Total Population"
+      "Abbreviations: SwedeHF, The Swedish Heart Failure Registry; NPR, The National Patient Register; NPDR, The National Prescribed Drug Register; LISA, Longitudinal integrated database for health insurance and labour market studies"
     ),
     alphabet = footnotetext,
     threeparttable = T

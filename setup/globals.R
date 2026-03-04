@@ -9,8 +9,8 @@ fixed <- stringr::fixed
 # used for calculation of ci
 global_z05 <- qnorm(1 - 0.025)
 
-shfdbpath <- "F:/STATISTIK/Projects/20210525_shfdb4/dm/"
-datadate <- "20240423"
+shfdbpath <- "P:/k2_stat_heartfailure/Projects/20240619_shfdb5/dm/"
+lev <- "leverans1"
 
 global_cols <- RColorBrewer::brewer.pal(7, "Set1")
 

@@ -3,7 +3,7 @@
 #| cache: true
 #| cache.comments: false
 
-swedenmap <- readr::read_rds("F:/STATISTIK/Projects/20240208_sglt2ef/data/clean-data/gadm/gadm41_SWE_1_pk.rds")
+swedenmap <- readr::read_rds(here("./data/clean-data/gadm/gadm41_SWE_1_pk.rds"))
 map <- swedenmap %>%
   terra::unwrap() %>%
   st_as_sf()
@@ -66,6 +66,7 @@ region <- region %>%
 #| cache.comments: false
 #| dependson: geoprep
 #| tbl-cap: "SGLT2i use at registration in SwedeHF by county of centre"
+#| tbl-pos: "H"
 
 regiontab <- region %>%
   select(shf_ef_cat, shf_centreregion_map, np) %>%
@@ -96,7 +97,7 @@ pall <- ggplot(mapfig, aes(fill = per_cat)) +
     text = element_text(size = 20, face = "bold"),
     legend.position = "bottom"
   ) +
-  scale_fill_manual(values = c(mapcols[3:9], "lightgrey")) +
+  scale_fill_manual(values = c(mapcols[4:9], "lightgrey")) +
   labs(fill = "SGLT2i (%)") +
   facet_wrap(vars(shf_ef_cat), ncol = 3)
 

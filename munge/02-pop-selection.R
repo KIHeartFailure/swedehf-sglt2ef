@@ -1,64 +1,101 @@
-# Inclusion/exclusion criteria --------------------------------------------------------
-
-flow <- flow[c(1:8, 10), 1:2]
-
+flow <- flow[c(1:8), 1:2]
 names(flow) <- c("Criteria", "N")
 
 flow <- flow %>%
-  mutate(Criteria = case_when(
-    Criteria == "Exclude posts with with index date > 2023-12-31 (SwedeHF)/2021-12-31 (NPR HF, Controls)" ~ "Exclude posts with index date > 2023-12-31",
-    Criteria == "Exclude posts censored end fu < index" ~ "Exclude posts with end of follow-up < index",
-    Criteria == "Exclude posts with with index date < 2000-01-01" ~ "Exclude posts with index date < 2000-01-01",
-    TRUE ~ Criteria
-  ))
+  add_row(
+    Criteria = "General inclusion/exclusion criteria",
+    N = NA, .before = 1
+  )
+flow <- flow %>%
+  add_row(
+    Criteria = "Project specific inclusion/exclusion criteria",
+    N = NA
+  )
 
-flow <- rbind(c("General inclusion/exclusion criteria", ""), flow)
+# Inclusion/exclusion criteria --------------------------------------------------------
 
-flow <- rbind(flow, c("Project specific inclusion/exclusion criteria", ""))
+rsdata <- rsdata501 %>%
+  filter(shf_indexdtm >= ymd("2020-11-01"))
+flow <- flow %>%
+  add_row(
+    Criteria = "Include posts >= 2020-11-01",
+    N = nrow(rsdata)
+  )
 
-rsdata <- rsdata421 %>%
+rsdata <- rsdata %>%
   filter(!is.na(shf_ef_cat))
-flow <- rbind(flow, c("Exclude post with missing EF", nrow(rsdata)))
+flow <- flow %>%
+  add_row(
+    Criteria = "Exclude post with missing EF",
+    N = nrow(rsdata)
+  )
 
 rsdata <- rsdata %>%
   filter(!is.na(shf_diabetestype))
-flow <- rbind(flow, c("Exclude posts with missing DM type", nrow(rsdata)))
+flow <- flow %>%
+  add_row(
+    Criteria = "Exclude posts with missing DM type",
+    N = nrow(rsdata)
+  )
 
 rsdata <- rsdata %>%
   filter(shf_diabetestype != "Type I")
-flow <- rbind(flow, c("Exclude posts with DM type I", nrow(rsdata)))
+flow <- flow %>%
+  add_row(
+    Criteria = "Exclude posts with DM type I",
+    N = nrow(rsdata)
+  )
 
 rsdata <- rsdata %>%
   filter(!is.na(shf_gfrckdepi))
-flow <- rbind(flow, c("Exclude posts with missing eGFR", nrow(rsdata)))
+flow <- flow %>%
+  add_row(
+    Criteria = "Exclude posts with missing eGFR",
+    N = nrow(rsdata)
+  )
 
 rsdata <- rsdata %>%
   filter(shf_gfrckdepi >= 25)
-flow <- rbind(flow, c("Exclude posts with eGFR < 25", nrow(rsdata)))
+flow <- flow %>%
+  add_row(
+    Criteria = "Exclude posts with eGFR < 25",
+    N = nrow(rsdata)
+  )
 
 rsdata <- rsdata %>%
   filter(sos_com_dialysis == "No")
-flow <- rbind(flow, c("Exclude posts with previous dialysis within 5 years", nrow(rsdata)))
+flow <- flow %>%
+  add_row(
+    Criteria = "Exclude posts with previous dialysis within 5 years",
+    N = nrow(rsdata)
+  )
 
 rsdata <- rsdata %>%
   filter(sos_outtime_death > 14)
-flow <- rbind(flow, c("Exclude posts with <= 14 days follow-time (SGLT2i defined as dispensations up untill 14 days after baseline)", nrow(rsdata)))
-
-rsdata <- rsdata %>%
-  filter(shf_indexdtm >= ymd("2020-11-01"))
-flow <- rbind(flow, c("Include posts >= 2020-11-01", nrow(rsdata)))
+flow <- flow %>%
+  add_row(
+    Criteria = "Exclude posts with <= 14 days follow-time (SGLT2i defined as dispensations up untill 14 days after baseline)",
+    N = nrow(rsdata)
+  )
 
 rsdata <- rsdata %>%
   group_by(lopnr) %>%
   arrange(shf_indexdtm) %>%
   slice(n()) %>%
   ungroup()
-
-flow <- rbind(flow, c("Last post / patient (Used for temporal trends)", nrow(rsdata)))
+flow <- flow %>%
+  add_row(
+    Criteria = "Last post / patient (Used for temporal trends)",
+    N = nrow(rsdata)
+  )
 
 rsdata <- rsdata %>%
   mutate(popmain = shf_indexdtm >= ymd("2022-09-01"))
-flow <- rbind(flow, c("Include posts >= 2022-09-01 (Deliver) (used for all other analyses)", nrow(rsdata %>% filter(popmain))))
+flow <- flow %>%
+  add_row(
+    Criteria = "Include posts >= 2022-09-01 (Deliver) (used for all other analyses)",
+    N = nrow(rsdata %>% filter(popmain))
+  )
 
-rm(rsdata421)
+rm(rsdata501)
 gc()

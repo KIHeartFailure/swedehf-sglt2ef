@@ -195,6 +195,7 @@ predout <- predictorsfunc()
 #| label: fig-predictors
 #| cache: true
 #| cache.comments: false
+#| cache-lazy: false
 #| dependson: predictorsfunc
 #| fig-cap: "Independent associations between baseline characteristics and SGLT2i"
 #| fig-width: 10
@@ -489,27 +490,28 @@ default_kable(predtab,
 
 modvarstmp <- c("shf_ef_cat", modvars)
 # adjusted
-logregadj <- with(imprsdata, glm(
+logregadj <- summary(pool(with(imprsdata, glm(
   formula(paste0(
     "sos_lm_sglt2 == 'Yes' ~ ", paste(modvarstmp, collapse = " + ")
   )),
   family = binomial(link = "logit")
-))
-logregsumadj <- summary(pool(logregadj))
+))))
 
 adjtmp <- tibble(
-  varname = as.character(logregsumadj$term),
-  or = exp(logregsumadj$estimate),
-  lci = exp(logregsumadj$estimate - global_z05 * logregsumadj$std.error),
-  uci = exp(logregsumadj$estimate + global_z05 * logregsumadj$std.error),
-  p = fn(logregsumadj$p.value, dig = 3, p = TRUE)
+  varname = as.character(logregadj$term),
+  or = exp(logregadj$estimate),
+  lci = exp(logregadj$estimate - global_z05 * logregadj$std.error),
+  uci = exp(logregadj$estimate + global_z05 * logregadj$std.error),
+  p = fn(logregadj$p.value, dig = 3, p = TRUE)
 ) %>%
   mutate(cols = case_when(
-    logregsumadj$p.value >= 0.05 ~ 2,
+    logregadj$p.value >= 0.05 ~ 2,
     or >= 1 ~ 1,
     or < 1 ~ 3
   )) %>%
   slice(2:n())
+
+rm(logregadj)
 
 for (i in seq_along(modvarstmp)) {
   # crude
@@ -569,6 +571,8 @@ predoutoverall <- bind_rows(
   crudetmp %>% mutate(model = "crude"),
   adjtmp %>% mutate(model = "adj")
 )
+rm(crudetmp)
+rm(adjtmp)
 
 # save <- predoutoverall
 # predoutoverall <- save
@@ -614,7 +618,7 @@ predoutoverall <- left_join(predoutoverall,
     )
   )
 
-predoutoverall2 <- full_join(
+predoutoverall <- full_join(
   predoutoverall %>% filter(model == "crude") %>% select(varname, var2, orci, c),
   predoutoverall %>% filter(model == "adj") %>% select(varname, or, lci, uci, cols, orci),
   by = "varname",
@@ -627,12 +631,13 @@ predoutoverall2 <- full_join(
 #| label: fig-predictors-overall
 #| cache: true
 #| cache.comments: false
+#| cache-lazy: false
 #| dependson: predictorsoverallfunc
 #| fig-cap: "Independent associations between baseline characteristics and SGLT2i - Overall"
 #| fig-width: 7
 #| fig-height: 10
 
-predoutoverallplot <- predoutoverall2 %>%
+predoutoverallplot <- predoutoverall %>%
   mutate(
     var2 = str_replace_all(var2, ">=", "\u2265"),
     var2 = str_replace_all(var2, "<=", "\u2264"),
@@ -724,7 +729,7 @@ pall
 #| tbl-cap: "Associations between baseline characteristics and SGLT2i - Overall"
 #| tbl-pos: "H"
 
-predoveralltab <- predoutoverall2 %>%
+predoveralltab <- predoutoverall %>%
   select(var2, orci_crude, orci)
 
 cn <- c("Variable", "Crude Odds Ratio (95% CI)", "Adjusted Odds Ratio (95% CI)")

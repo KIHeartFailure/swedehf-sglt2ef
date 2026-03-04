@@ -1,4 +1,4 @@
-load(here(shfdbpath, "data", datadate, "/lmswedehf.RData"))
+lmswedehf <- read_parquet(here(shfdbpath, "data/clean-data/", lev, "/lmrsdata.parquet"))
 
 # Treatments from PDR ----------------------------------------
 
@@ -107,3 +107,7 @@ rsdata <- left_join(rsdata,
     disc = replace_na(disc, 0)
   ) %>%
   select(-outtime_disctmp)
+
+rm(lmswedehf)
+rm(lmsglt2)
+gc()
